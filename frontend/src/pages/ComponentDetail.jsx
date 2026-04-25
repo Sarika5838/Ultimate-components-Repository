@@ -49,7 +49,7 @@ const ComponentDetail = () => {
       {/* Header section */}
       <div className="bg-white dark:bg-dark-card rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-800 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-500/5 to-indigo-500/5 rounded-full blur-3xl -z-10" />
-        
+
         <div className="flex-1 mb-6 md:mb-0">
           <div className="flex items-center space-x-3 mb-3">
             <span className="px-3 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg text-sm font-semibold">
@@ -80,7 +80,7 @@ const ComponentDetail = () => {
             download
             className="flex justify-center items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-indigo-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-primary-500/30 transition-all shadow-md group border border-transparent"
           >
-            <Download size={18} className="mr-2 group-hover:-translate-y-1 transition-transform" /> 
+            <Download size={18} className="mr-2 group-hover:-translate-y-1 transition-transform" />
             Download ZIP
           </a>
         </div>
@@ -88,17 +88,17 @@ const ComponentDetail = () => {
 
       {/* Main Content Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Left Column - Content */}
         <div className="lg:col-span-2 space-y-8">
-          
+
           {/* Gallery Preview */}
           <div className="bg-white dark:bg-dark-card rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm relative group">
             {component.screenshots && component.screenshots.length > 0 ? (
-              <img 
-                src={`http://localhost:5000${component.screenshots[0]}`} 
-                alt="Component Preview" 
-                className="w-full aspect-video object-cover" 
+              <img
+                src={component.screenshots[0].startsWith('http') ? component.screenshots[0] : `http://localhost:5000${component.screenshots[0]}`}
+                alt="Component Preview"
+                className="w-full aspect-video object-cover"
               />
             ) : (
               <div className="w-full aspect-video bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 flex-col">
@@ -116,8 +116,8 @@ const ComponentDetail = () => {
                 onClick={() => setActiveTab(tab)}
                 className={clsx(
                   "pb-4 text-sm font-medium border-b-2 transition-colors capitalize",
-                  activeTab === tab 
-                    ? "border-primary-500 text-primary-600 dark:text-primary-400" 
+                  activeTab === tab
+                    ? "border-primary-500 text-primary-600 dark:text-primary-400"
                     : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 )}
               >
@@ -132,7 +132,7 @@ const ComponentDetail = () => {
               <div className="prose dark:prose-invert max-w-none">
                 <h3 className="text-xl font-bold mb-4">Description</h3>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{component.description}</p>
-                
+
                 <h3 className="text-xl font-bold mt-8 mb-4">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {component.tags?.map((tag, i) => (
@@ -181,7 +181,7 @@ const ComponentDetail = () => {
             <h3 className="font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
               Component Info
             </h3>
-            
+
             <ul className="space-y-4">
               <li className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400 text-sm">Version</span>
@@ -196,7 +196,7 @@ const ComponentDetail = () => {
               <li className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400 text-sm">Rating</span>
                 <span className="font-semibold text-slate-900 dark:text-white flex items-center">
-                  <Star size={14} className="mr-1 text-amber-500 fill-amber-500" /> 
+                  <Star size={14} className="mr-1 text-amber-500 fill-amber-500" />
                   {component.averageRating ? component.averageRating.toFixed(1) : 'No ratings'}
                 </span>
               </li>
@@ -209,7 +209,7 @@ const ComponentDetail = () => {
               )}
             </ul>
           </div>
-          
+
           <div className="card p-6 bg-gradient-to-br from-primary-500/10 to-indigo-500/10 border-primary-500/20">
             <h3 className="font-bold text-slate-900 dark:text-white mb-2">Want to contribute?</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Connect with the author or fork the project on GitHub to suggest improvements.</p>

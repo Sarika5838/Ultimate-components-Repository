@@ -62,11 +62,10 @@ const uploadComponent = async (req, res) => {
       githubLink, liveDemoLink, currentVersion, changelog
     } = req.body;
 
-    const screenshots = req.files['screenshots'] ? req.files['screenshots'].map(f => `/uploads/screenshots/${f.filename}`) : [];
-    const zipFileUrl = req.files['zipFile'] ? `/uploads/zips/${req.files['zipFile'][0].filename}` : '';
+    const screenshots = req.files && req.files['screenshots'] ? req.files['screenshots'].map(f => `/uploads/screenshots/${f.filename}`) : [];
 
-    if (screenshots.length === 0 || !zipFileUrl) {
-      return res.status(400).json({ message: 'Please upload screenshots and a ZIP file' });
+    if (screenshots.length === 0) {
+      return res.status(400).json({ message: 'Please upload screenshots' });
     }
 
     const component = new Component({
@@ -86,8 +85,7 @@ const uploadComponent = async (req, res) => {
       versions: [
         {
           versionNumber: currentVersion || '1.0.0',
-          changelog: changelog || 'Initial release',
-          fileUrl: zipFileUrl
+          changelog: changelog || 'Initial release'
         }
       ]
     });
@@ -95,7 +93,8 @@ const uploadComponent = async (req, res) => {
     const createdComponent = await component.save();
     res.status(201).json(createdComponent);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Component upload error:", error);
+    res.status(500).json({ message: error.message || 'Server Error' });
   }
 };
 

@@ -15,8 +15,6 @@ const storage = multer.diskStorage({
   destination(req, file, cb) {
     if (file.fieldname === 'screenshots') {
       cb(null, screenshotsDir);
-    } else if (file.fieldname === 'zipFile') {
-      cb(null, zipsDir);
     } else {
       cb(null, uploadDir);
     }
@@ -36,17 +34,8 @@ function checkFileType(file, cb) {
     } else {
       cb('Images only!');
     }
-  } else if (file.fieldname === 'zipFile') {
-    const filetypes = /zip|rar|7z/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed';
-    if (extname && mimetype) {
-      return cb(null, true);
-    } else {
-      cb('ZIP/Archive files only!');
-    }
   } else {
-    cb('Unexpected field');
+    cb(new Error('Unexpected field'));
   }
 }
 

@@ -9,7 +9,7 @@ const ComponentCard = ({ component }) => {
       <Link to={`/components/${component._id}`} className="block relative overflow-hidden h-48 border-b border-slate-200 dark:border-slate-800">
         {component.screenshots && component.screenshots.length > 0 ? (
           <img 
-            src={`http://localhost:5000${component.screenshots[0]}`} 
+            src={component.screenshots[0].startsWith('http') ? component.screenshots[0] : `http://localhost:5000${component.screenshots[0]}`} 
             alt={component.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => { e.target.src = 'https://placehold.co/600x400/1e293b/a21caf?text=Preview+Not+Available' }}

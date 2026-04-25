@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import api from '../api/axiosConfig';
-import { UploadCloud, Image as ImageIcon, FileArchive, CheckCircle, XCircle } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, FileArchive, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 
 const UploadComponent = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  
+
 
   const [formData, setFormData] = useState({
     title: '',
@@ -26,8 +26,7 @@ const UploadComponent = () => {
   });
 
   const [files, setFiles] = useState({
-    screenshots: [],
-    zipFile: null
+    screenshots: []
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,9 +47,26 @@ const UploadComponent = () => {
     if (e.target.name === 'screenshots') {
       const selectedFiles = Array.from(e.target.files).slice(0, 5); // Max 5
       setFiles({ ...files, screenshots: selectedFiles });
-    } else {
-      setFiles({ ...files, zipFile: e.target.files[0] });
     }
+  };
+
+  const removeScreenshot = (index, e) => {
+    if (e) e.preventDefault();
+    setFiles(prev => {
+      const remaining = prev.screenshots.filter((_, i) => i !== index);
+      if (remaining.length === 0) {
+        const input = document.getElementById('screenshotsInput');
+        if (input) input.value = '';
+      }
+      return { ...prev, screenshots: remaining };
+    });
+  };
+
+  const clearScreenshots = (e) => {
+    if (e) e.preventDefault();
+    setFiles(prev => ({ ...prev, screenshots: [] }));
+    const input = document.getElementById('screenshotsInput');
+    if (input) input.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -61,11 +77,15 @@ const UploadComponent = () => {
 
     try {
       const data = new FormData();
+      const finalSetupInstructions = formData.setupInstructions || formData.documentation || 'No additional setup instructions provided.';
+
       Object.keys(formData).forEach(key => {
         if (key === 'tags' || key === 'dependencies') {
           // simple comma separated to JSON array
           const arr = formData[key].split(',').map(s => s.trim()).filter(s => s);
           data.append(key, JSON.stringify(arr));
+        } else if (key === 'setupInstructions') {
+          data.append(key, finalSetupInstructions);
         } else {
           data.append(key, formData[key]);
         }
@@ -74,12 +94,6 @@ const UploadComponent = () => {
       files.screenshots.forEach(file => {
         data.append('screenshots', file);
       });
-
-      if (files.zipFile) {
-        data.append('zipFile', files.zipFile);
-      } else {
-        throw new Error("ZIP File is required");
-      }
 
       const response = await api.post('/components', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -118,7 +132,7 @@ const UploadComponent = () => {
 
       <div className="card p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Component Title <span className="text-red-500">*</span></label>
@@ -154,25 +168,41 @@ const UploadComponent = () => {
 
           <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Files & Media</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Source Code (ZIP / Rar) <span className="text-red-500">*</span></label>
-                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer relative">
-                  <FileArchive className="h-10 w-10 text-primary-500 mb-3" />
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Click to upload ZIP</p>
-                  <p className="text-xs text-slate-500 mt-1">{files.zipFile ? files.zipFile.name : 'Max 50MB'}</p>
-                  <input type="file" name="zipFile" accept=".zip,.rar,.7z" onChange={handleFileChange} required className="absolute inset-0 opacity-0 cursor-pointer" />
-                </div>
-              </div>
 
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Screenshots (Up to 5) <span className="text-red-500">*</span></label>
-                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer relative">
-                  <ImageIcon className="h-10 w-10 text-primary-500 mb-3" />
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Click to upload images</p>
-                  <p className="text-xs text-slate-500 mt-1">{files.screenshots.length > 0 ? `${files.screenshots.length} file(s) selected` : 'JPG, PNG, WebP'}</p>
-                  <input type="file" name="screenshots" multiple accept="image/*" onChange={handleFileChange} required className="absolute inset-0 opacity-0 cursor-pointer" />
+                <div className="border border-slate-300 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/50">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="file"
+                      id="screenshotsInput"
+                      name="screenshots"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      required={files.screenshots.length === 0}
+                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/30 dark:file:text-primary-400"
+                    />
+                    {files.screenshots.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearScreenshots}
+                        className="p-2 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors border border-red-200 dark:border-red-800/50"
+                        title="Clear Screenshots"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                  {files.screenshots.length > 0 && (
+                    <div className="mt-2 flex flex-col space-y-1">
+                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{files.screenshots.length} file(s) selected:</span>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 break-words">
+                        {files.screenshots.map(f => f.name).join(', ')}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -180,7 +210,7 @@ const UploadComponent = () => {
 
           <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Documentation & Links</h3>
-            
+
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Documentation / Setup Instructions <span className="text-red-500">*</span></label>

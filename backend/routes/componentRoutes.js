@@ -15,8 +15,7 @@ const upload = require('../middleware/uploadMiddleware');
 router.route('/')
   .get(getComponents)
   .post(protect, upload.fields([
-    { name: 'screenshots', maxCount: 5 },
-    { name: 'zipFile', maxCount: 1 }
+    { name: 'screenshots', maxCount: 5 }
   ]), uploadComponent);
 
 router.route('/:id')
