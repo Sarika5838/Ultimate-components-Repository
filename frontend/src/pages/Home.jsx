@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, Code, Layers, Zap, Star, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const TrendingComponentCard = ({ title, category, author, downloads, rating }) => (
-  <div className="card group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+  <Link to="/components" className="card group cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block">
     <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-center p-4">
       <div className="w-full h-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex items-center justify-center text-slate-400">
         Demo Preview
@@ -29,10 +29,22 @@ const TrendingComponentCard = ({ title, category, author, downloads, rating }) =
         <span className="flex items-center"><Zap size={14} className="mr-1 text-slate-400" /> {downloads} Downloads</span>
       </div>
     </div>
-  </div>
+  </Link>
 );
 
 const Home = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/components?keyword=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/components');
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
@@ -49,19 +61,21 @@ const Home = () => {
             Discover, share, and manage production-ready React components, Node.js modules, and templates to accelerate your development workflow.
           </p>
 
-          <div className="w-full max-w-2xl relative mb-8">
+          <form onSubmit={handleSearch} className="w-full max-w-2xl relative mb-8">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Search className="h-6 w-6 text-slate-400" />
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-14 pr-4 py-4 md:py-5 border-none rounded-2xl bg-white/10 backdrop-blur-md text-white placeholder-slate-300 focus:ring-4 focus:ring-primary-500/50 outline-none text-lg shadow-2xl transition-all"
               placeholder="Search components, modules, tags..."
             />
-            <button className="absolute right-2 top-2 bottom-2 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-semibold rounded-xl px-6 hover:shadow-lg hover:shadow-primary-500/30 transition-all hidden md:block">
+            <button type="submit" className="absolute right-2 top-2 bottom-2 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-semibold rounded-xl px-6 hover:shadow-lg hover:shadow-primary-500/30 transition-all hidden md:block">
               Search
             </button>
-          </div>
+          </form>
 
           <div className="flex flex-wrap justify-center gap-3 text-sm text-slate-300">
             <span className="font-medium mr-2">Popular:</span>

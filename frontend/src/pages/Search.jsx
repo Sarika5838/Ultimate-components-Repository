@@ -1,30 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import ComponentCard from '../components/ComponentCard';
 import { Search as SearchIcon, Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
 
 const Search = () => {
+  const location = useLocation();
+  const initialKeyword = new URLSearchParams(location.search).get('keyword') || '';
+
   const [components, setComponents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    keyword: '',
+    keyword: initialKeyword,
     category: '',
     technology: ''
   });
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    fetchComponents();
-  }, []);
+    const keyword = new URLSearchParams(location.search).get('keyword') || '';
+    const updatedFilters = { ...filters, keyword };
+    if (keyword !== filters.keyword) {
+      setFilters(updatedFilters);
+    }
+    fetchComponents(updatedFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
 
-  const fetchComponents = async () => {
+  const fetchComponents = async (currentFilters = filters) => {
     setLoading(true);
     try {
       // Build query string
       const queryParams = new URLSearchParams();
-      if (filters.keyword) queryParams.append('keyword', filters.keyword);
-      if (filters.category) queryParams.append('category', filters.category);
-      if (filters.technology) queryParams.append('technology', filters.technology);
+      if (currentFilters.keyword) queryParams.append('keyword', currentFilters.keyword);
+      if (currentFilters.category) queryParams.append('category', currentFilters.category);
+      if (currentFilters.technology) queryParams.append('technology', currentFilters.technology);
       
       const { data } = await api.get(`/components?${queryParams.toString()}`);
       setComponents(data);
