@@ -7,23 +7,43 @@ const fs = require('fs');
 // @access  Public
 const getComponents = async (req, res) => {
   try {
+    const pageSize = Number(req.query.limit) || 12;
+    const page = Number(req.query.page) || 1;
+
     const keyword = req.query.keyword
       ? {
-          title: {
-            $regex: req.query.keyword,
-            $options: 'i',
-          },
+          $or: [
+            { title: { $regex: req.query.keyword, $options: 'i' } },
+            { description: { $regex: req.query.keyword, $options: 'i' } },
+            { technology: { $regex: req.query.keyword, $options: 'i' } },
+            { category: { $regex: req.query.keyword, $options: 'i' } },
+            { tags: { $regex: req.query.keyword, $options: 'i' } }
+          ]
         }
       : {};
 
     const category = req.query.category ? { category: req.query.category } : {};
     const technology = req.query.technology ? { technology: req.query.technology } : {};
 
-    const components = await Component.find({ ...keyword, ...category, ...technology })
-      .populate('author', 'username avatar')
-      .sort({ createdAt: -1 });
+    const query = { ...keyword, ...category, ...technology };
     
-    res.json(components);
+    let sortOption = { createdAt: -1 }; // Default: Newest
+    if (req.query.sort === 'downloads') {
+      sortOption = { downloads: -1 };
+    } else if (req.query.sort === 'rating') {
+      sortOption = { averageRating: -1 };
+    } else if (req.query.sort === 'oldest') {
+      sortOption = { createdAt: 1 };
+    }
+
+    const count = await Component.countDocuments(query);
+    const components = await Component.find(query)
+      .populate('author', 'username avatar')
+      .sort(sortOption)
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
+    
+    res.json({ components, page, pages: Math.ceil(count / pageSize), total: count });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -208,6 +228,50 @@ const downloadComponent = async (req, res) => {
   }
 };
 
+// @desc    Like or Unlike a component
+// @route   PUT /api/components/:id/like
+// @access  Private
+const likeComponent = async (req, res) => {
+  try {
+    const component = await Component.findById(req.params.id);
+
+    if (!component) {
+      return res.status(404).json({ message: 'Component not found' });
+    }
+
+    const isLiked = component.likes.includes(req.user._id);
+
+    if (isLiked) {
+      component.likes = component.likes.filter(
+        (userId) => userId.toString() !== req.user._id.toString()
+      );
+    } else {
+      component.likes.push(req.user._id);
+    }
+
+    await component.save();
+    
+    res.json({ likes: component.likes });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get components liked by user
+// @route   GET /api/components/liked/me
+// @access  Private
+const getLikedComponents = async (req, res) => {
+  try {
+    const components = await Component.find({ likes: req.user._id })
+      .populate('author', 'username avatar')
+      .sort({ createdAt: -1 });
+
+    res.json(components);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getComponents,
   getComponentById,
@@ -215,5 +279,7 @@ module.exports = {
   updateComponent,
   deleteComponent,
   createReview,
-  downloadComponent
+  downloadComponent,
+  likeComponent,
+  getLikedComponents
 };

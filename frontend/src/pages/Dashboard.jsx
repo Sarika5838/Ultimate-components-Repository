@@ -25,7 +25,8 @@ const Dashboard = () => {
       const { data } = await api.get('/components');
       // For this simple example, we just filter client side or assume a query param for user.
       // Ideally, there should be a proper backend route /api/users/components
-      const userComps = data.filter(c => c.author?._id === user._id || c.author === user._id || c.author?.username === user.username);
+      const componentsArray = data.components || data || [];
+      const userComps = componentsArray.filter(c => c.author?._id === user._id || c.author === user._id || c.author?.username === user.username);
       setComponents(userComps);
     } catch (err) {
       console.error(err);

@@ -24,7 +24,7 @@ const AdminPanel = () => {
     try {
       // In a real app we'd fetch users and more advanced stats too
       const { data } = await api.get('/components');
-      setComponents(data);
+      setComponents(data.components || data || []);
     } catch (err) {
       console.error(err);
     } finally {

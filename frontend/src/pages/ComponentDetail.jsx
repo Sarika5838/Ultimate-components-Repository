@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axiosConfig';
-import { Download, Star, Globe, ExternalLink, Calendar, Code, CheckCircle, Tag, Layers } from 'lucide-react';
+import { Download, Star, Globe, ExternalLink, Calendar, Code, CheckCircle, Tag, Layers, Copy, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import clsx from 'clsx';
+import { SkeletonComponentDetail } from '../components/ui/Skeleton';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const ComponentDetail = () => {
   const { id } = useParams();
@@ -11,6 +14,13 @@ const ComponentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const fetchComponent = async () => {
@@ -28,8 +38,8 @@ const ComponentDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      <div className="py-8">
+        <SkeletonComponentDetail />
       </div>
     );
   }
@@ -147,10 +157,24 @@ const ComponentDetail = () => {
             {activeTab === 'documentation' && (
               <div className="prose dark:prose-invert max-w-none">
                 <h3 className="text-xl font-bold mb-4">Documentation & Setup</h3>
-                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700 dark:text-slate-300 overflow-x-auto">
-                    {component.documentation || component.setupInstructions || 'No documentation provided.'}
-                  </pre>
+                <div className="relative group">
+                  <button
+                    onClick={() => handleCopy(component.documentation || component.setupInstructions || '')}
+                    className="absolute right-4 top-4 p-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                    title="Copy code"
+                  >
+                    {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                  </button>
+                  <div className="rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+                    <SyntaxHighlighter
+                      language="javascript"
+                      style={atomDark}
+                      customStyle={{ margin: 0, padding: '1.5rem', borderRadius: '0', fontSize: '0.875rem' }}
+                      showLineNumbers={true}
+                    >
+                      {component.documentation || component.setupInstructions || 'No documentation provided.'}
+                    </SyntaxHighlighter>
+                  </div>
                 </div>
               </div>
             )}

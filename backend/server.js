@@ -3,6 +3,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const path = require('path');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 
 // Load env vars
@@ -15,6 +18,17 @@ const app = express();
 
 // Body parser
 app.use(express.json());
+
+// Security Middlewares
+app.use(helmet()); // Set security HTTP headers
+// app.use(mongoSanitize()); // Prevent NoSQL injection (incompatible with Express 5 req.query getter)
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 mins
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', limiter);
 
 // Enable CORS
 app.use(cors());
@@ -31,9 +45,20 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/components', require('./routes/componentRoutes'));
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  app.get(/(.*)/, (req, res) =>
+    res.sendFile(
+      path.resolve(__dirname, '../', 'frontend', 'dist', 'index.html')
+    )
+  );
+} else {
+  app.get('/', (req, res) => {
+    res.send('API is running...');
+  });
+}
 
 // Global error handler
 app.use((err, req, res, next) => {

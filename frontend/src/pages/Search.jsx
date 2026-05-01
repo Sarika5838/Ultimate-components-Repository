@@ -37,7 +37,7 @@ const Search = () => {
       if (currentFilters.technology) queryParams.append('technology', currentFilters.technology);
       
       const { data } = await api.get(`/components?${queryParams.toString()}`);
-      setComponents(data);
+      setComponents(data.components || []);
     } catch (error) {
       console.error("Error fetching components:", error);
     } finally {

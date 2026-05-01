@@ -35,16 +35,23 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden sm:block relative">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const term = e.target.search.value.trim();
+              if (term) {
+                window.location.href = `/components?keyword=${encodeURIComponent(term)}`;
+              }
+            }} className="hidden sm:block relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-slate-400" />
               </div>
               <input
                 type="text"
+                name="search"
                 className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-700 rounded-full bg-slate-50 dark:bg-slate-800/50 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                 placeholder="Search components..."
               />
-            </div>
+            </form>
 
             <button
               onClick={() => dispatch(toggleTheme())}

@@ -7,7 +7,9 @@ const {
   updateComponent,
   deleteComponent,
   createReview,
-  downloadComponent
+  downloadComponent,
+  likeComponent,
+  getLikedComponents
 } = require('../controllers/componentController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
@@ -18,11 +20,14 @@ router.route('/')
     { name: 'screenshots', maxCount: 5 }
   ]), uploadComponent);
 
+router.get('/liked/me', protect, getLikedComponents);
+
 router.route('/:id')
   .get(getComponentById)
   .put(protect, updateComponent)
   .delete(protect, deleteComponent);
 
+router.put('/:id/like', protect, likeComponent);
 router.post('/:id/reviews', protect, createReview);
 router.get('/:id/download', downloadComponent);
 
